@@ -137,27 +137,6 @@ flowchart TD
 
 考虑到前端环境下第 50 毫秒左右的渲染节奏，我们用 `setTimeout` 保证加载动画能及时展现。在错误处理方面，除了捕获所有可能的异常并在预览区域给出友好提示外，还利用后端大模型接口异步生成对错误原因的深入解释，帮助用户迅速理解并修正输入。这些设计经验启示我们：一方面要在关键路径精简操作以保障性能，另一方面需通过日志与类型检查构建可维护的“防火墙”，在复杂场景中依旧保持系统鲁棒。
 
-```mermaid
-flowchart TB
-  A[调用 processMathOperation] --> B[显示“正在执行”加载状态]
-  B --> C{输入是否为空？}
-  C -- 是 --> D[显示空输入警告并返回]
-  C -- 否 --> E[LaTeX 转换 → Nerdamer 表达式]
-  E --> F{运算类型}
-  F --> |simplify| G[简化表达式]
-  F --> |diff| H[求导]
-  F --> |integrate| I[积分]
-  F --> |factor| J[因式分解]
-  F --> |expand| K[展开]
-  F --> |solve| L[求解方程并格式化]
-  G & H & I & J & K & L --> M[调用 .toTeX() → LaTeX 结果]
-  M --> N[更新 preview 并渲染 MathJax]
-  N --> O{替换编辑器？}
-  O -- 是 --> P[清空编辑器并插入结果]
-  O -- 否 --> Q[保留原有输入]
-  N & Q & P --> Z[结束]
-  style Z fill:#f9f,stroke:#333,stroke-width:2px
-```
 ### 3.5 函数绘图（plot.js）
 
 函数绘图模块基于 function‑plot 与 D3.js，负责将用户以 LaTeX 表达式输入的函数转化为可交互的图像展现。其核心在于 parseLatexForPlotting 函数，其签名及参数如下：

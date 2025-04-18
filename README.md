@@ -7,18 +7,6 @@
 
 ## 2. 文件概览
 
-```mermaid
-graph LR
-  style.css --> index.html
-  index.html --> dom.js
-  dom.js --> script.js
-  config.js --> script.js
-  script.js --> mathjax.js
-  script.js --> math.js
-  script.js --> plot.js
-  script.js --> api.js
-  script.js --> ui.js
-``` 
 
 - **index.html**
   - 功能：入口页面，包含 LaTeX 输入框、操作按钮和渲染预览容器。
@@ -190,28 +178,6 @@ parseLatexForPlotting 的主要实现流程如下：
 
 在实际开发过程中，需关注 LaTeX 转换的边界情况、采样点数对性能和曲线平滑度的影响，以及配色和图例文本的显示效果。适当调整 `nSamples` 值可以在渲染性能与视觉体验之间取得平衡；错误处理则保证了模块的健壮性。
 
-```mermaid
-flowchart TD
-  A[调用 parseLatexForPlotting(latexExpr, index, addLegend, var)] --> B{nerdamer 可用？}
-  B -- 否 --> C[抛出 “Nerdamer 库未加载” 错误]
-  B -- 是 --> D[expression = convertFromLaTeX(latexExpr)]
-  D --> E[exprString = expression.toString()]
-  E --> F{variableName ≠ 'x'？}
-  F -- 是 --> G[plotExpr = exprString.replace(varRegex, 'x')]
-  F -- 否 --> G[plotExpr = exprString]
-  G --> H[从颜色数组选 color]
-  H --> I[构造 dataItem {fn, color, graphType, nSamples, sampler}]
-  I --> J{addLegend？}
-  J -- 是 --> K[添加 title 字段]
-  J -- 否 --> L[跳过图例]
-  K --> M[返回 dataItem]
-  L --> M[返回 dataItem]
-  subgraph errorHandling
-    D & E & G & H & I & J --> N[捕获异常并抛出包含原始 latexExpr 的错误]
-  end
-```
-
-### 3.6 大模型接口（api.js）
 
 ### 3.6 大模型接口（api.js）
 

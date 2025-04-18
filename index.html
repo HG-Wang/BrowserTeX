@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LaTeX编辑与解析</title>
+<!-- 配置MathJax -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']], // 启用 $...$ 作为行内公式分隔符
+    displayMath: [['$$', '$$'], ['\\[', '\\]']] // 启用 $$...$$ 作为块级公式分隔符
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<!-- 引入MathJax -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- 引入Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- 引入Animate.css动效库 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<!-- 引入 markdown-it 用于 Markdown 解析 -->
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+<!-- 引入 nerdamer 用于公式化简 -->
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/nerdamer.core.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/Algebra.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/Calculus.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/Solve.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/Extra.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/nerdamer.latex.js"></script>
+<!-- 引入D3.js用于绘图 -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<!-- 引入Function-Plot用于函数绘图 -->
+<script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
+<!-- 引入自定义样式 -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>LaTeX编辑与解析</h1>
+            <button id="themeToggleBtn" class="btn btn-secondary">🌙</button>
+        </div>
+        <textarea id="editor" placeholder="在此输入LaTeX函数表达式，多个函数请用换行分隔，例如：\nx^2\n\sin(x)"></textarea>
+        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+            <button id="parseBtn" class="btn btn-secondary">解析LaTeX</button>
+            <button id="callModelBtn" class="btn btn-info">调用大模型</button>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="mathOpsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    数学运算
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="mathOpsDropdown">
+                    <li><a class="dropdown-item" href="#" data-op="simplify">化简公式</a></li>
+                    <li><a class="dropdown-item" href="#" data-op="diff">求导</a></li>
+                    <li><a class="dropdown-item" href="#" data-op="integrate">积分</a></li>
+                    <li><a class="dropdown-item" href="#" data-op="solve">求解方程</a></li>
+                    <li><a class="dropdown-item" href="#" data-op="factor">因式分解</a></li>
+                    <li><a class="dropdown-item" href="#" data-op="expand">展开</a></li>
+                </ul>
+            </div>
+            <!-- 添加函数绘图按钮 -->
+            <button id="plotFunctionBtn" class="btn btn-success">绘制函数图像</button>
+            <!-- 添加绘制运算结果按钮 -->
+            <button id="plotResultBtn" class="btn btn-warning d-none ms-2">绘制运算结果</button>
+            <div class="input-group input-group-sm" style="width: 150px;">
+                 <span class="input-group-text" id="variable-addon">变量:</span>
+                 <input type="text" class="form-control" id="variableInput" placeholder="默认 x" aria-label="Variable" aria-describedby="variable-addon" value="x">
+            </div>
+            <div class="form-check ms-2">
+                <input class="form-check-input" type="checkbox" value="" id="replaceEditorCheckbox">
+                <label class="form-check-label" for="replaceEditorCheckbox">
+                    清空并插入结果
+                </label>
+            </div>
+        </div>
+        <!-- 添加绘图配置区域 -->
+        <div id="plotConfigPanel" class="card mb-3 d-none animate__animated animate__fadeIn">
+            <div class="card-header">函数绘图配置</div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col">
+                        <label for="xRangeMin" class="form-label">X轴最小值</label>
+                        <input type="number" class="form-control" id="xRangeMin" value="-10">
+                    </div>
+                    <div class="col">
+                        <label for="xRangeMax" class="form-label">X轴最大值</label>
+                        <input type="number" class="form-control" id="xRangeMax" value="10">
+                    </div>
+                    <div class="col">
+                        <label for="yRangeMin" class="form-label">Y轴最小值</label>
+                        <input type="number" class="form-control" id="yRangeMin" value="-10">
+                    </div>
+                    <div class="col">
+                        <label for="yRangeMax" class="form-label">Y轴最大值</label>
+                        <input type="number" class="form-control" id="yRangeMax" value="10">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showGridCheck" checked>
+                            <label class="form-check-label" for="showGridCheck">显示网格</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showLegendCheck" checked>
+                            <label class="form-check-label" for="showLegendCheck">显示图例</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button id="generatePlotBtn" class="btn btn-primary">生成图像</button>
+                    <button id="closePlotConfigBtn" class="btn btn-secondary ms-2">取消</button>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="modelQuery" class="form-label">向大模型提问:</label>
+            <input type="text" class="form-control" id="modelQuery" placeholder="例如：解释这个LaTeX公式，或者帮我优化它">
+        </div>
+        <div id="preview" class="animate__animated animate__fadeIn"></div>
+        <!-- 添加函数图像区域 -->
+        <div id="functionPlot" class="mt-3 d-none animate__animated animate__fadeIn"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入自定义脚本 -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+

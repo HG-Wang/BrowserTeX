@@ -11,19 +11,20 @@
     --input-bg-color: #ffffff;
 }
 
+/* 系统深色模式只在没有用户设置时生效 */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --container-bg: #1e1e1e;
-    --preview-bg: #242424;
-    --plot-bg: #242424;
-    --border-color: #333333;
-    --input-bg-color: #2a2a2a;
-    --primary-color: #bb86fc;
-    --primary-text-color: #000000;
-    --primary-hover: #9a67ea;
-  }
+    html:not([data-theme]) {
+        --bg-color: #121212;
+        --text-color: #e0e0e0;
+        --container-bg: #1e1e1e;
+        --preview-bg: #242424;
+        --plot-bg: #242424;
+        --border-color: #333333;
+        --input-bg-color: #2a2a2a;
+        --primary-color: #bb86fc;
+        --primary-text-color: #000000;
+        --primary-hover: #9a67ea;
+    }
 }
 
 html[data-theme="dark"] {
@@ -137,12 +138,12 @@ body {
     }
     
     /* 控制面板样式 */
-    #plotConfigPanel {
+    #plotConfigPanel, #advancedMathPanel {
         transition: all 0.3s ease;
         border-color: var(--primary-color);
     }
     
-    #plotConfigPanel .card-header {
+    #plotConfigPanel .card-header, #advancedMathPanel .card-header {
         background-color: var(--primary-color);
         color: var(--primary-text-color);
         font-weight: 500;

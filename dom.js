@@ -22,3 +22,13 @@ export const yRangeMin = document.getElementById('yRangeMin');
 export const yRangeMax = document.getElementById('yRangeMax');
 export const showGridCheck = document.getElementById('showGridCheck');
 export const showLegendCheck = document.getElementById('showLegendCheck');
+
+// API配置相关元素
+export const settingsBtn = document.getElementById('settingsBtn');
+export const apiConfigPanel = document.getElementById('apiConfigPanel');
+export const apiBaseUrl = document.getElementById('apiBaseUrl');
+export const apiModel = document.getElementById('apiModel');
+export const apiKey = document.getElementById('apiKey');
+export const saveApiConfigBtn = document.getElementById('saveApiConfigBtn');
+export const resetApiConfigBtn = document.getElementById('resetApiConfigBtn');
+export const closeApiConfigBtn = document.getElementById('closeApiConfigBtn');

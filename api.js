@@ -1,5 +1,5 @@
 // api.js - Handles interaction with the Large Language Model API
-import { config } from './config.js';
+import { getConfig } from './config.js';
 import { showPreviewMessage, showLoadingMessage, showLoadingMessageForElement } from './ui.js';
 import { renderMathInElement } from './mathjax.js';
 import { preview } from './dom.js'; // Import preview for rendering
@@ -88,7 +88,7 @@ function renderMarkdownContent(rawContent) {
  * @param {string} latexContent 编辑器中的 LaTeX 内容。
  */
 export async function callLargeLanguageModel(userQuery, latexContent) {
-    const { apiEndpoint, apiKey, model } = config;
+    const { apiEndpoint, apiKey, model } = getConfig();
 
     if (!apiEndpoint || !apiKey) {
         showPreviewMessage('<div class="error-message alert alert-danger animate__animated animate__fadeIn">API 配置不完整或无效，请检查 config.js。</div>');
@@ -154,7 +154,7 @@ export async function explainErrorWithLLM(latexInput, errorMessage, variable, op
 
     showLoadingMessageForElement(targetElement, "正在尝试获取大模型解释...");
 
-    const { apiEndpoint, apiKey, model } = config;
+    const { apiEndpoint, apiKey, model } = getConfig();
 
     if (!apiEndpoint || !apiKey) {
         targetElement.innerHTML = `<div class="error-message alert alert-warning">无法调用大模型：API 配置不完整。</div>`;

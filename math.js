@@ -37,8 +37,7 @@ export function processMathOperation(operation, latexInput, variable) {
             // 2. 根据操作调用 Nerdamer 函数
             switch (operation) {
                 case 'simplify':
-                    // Simplify 通常直接作用于表达式对象
-                    resultNerdamerObject = nerdamer(expression); // 重新构造以确保应用简化规则
+                    resultNerdamerObject = nerdamer(expression);
                     break;
                 case 'diff':
                     resultNerdamerObject = nerdamer.diff(expression, variable);
@@ -47,37 +46,47 @@ export function processMathOperation(operation, latexInput, variable) {
                     resultNerdamerObject = nerdamer.integrate(expression, variable);
                     break;
                 case 'solve':
-                    // solveEquations 通常需要字符串形式的方程
                     solutions = nerdamer.solveEquations(exprString, variable);
                     if (Array.isArray(solutions)) {
-                        // 处理多个解或无解的情况
                         if (solutions.length === 0) {
                             resultLatex = "\\text{无解}";
                         } else {
-                            // --- 调试日志开始 ---
-                            console.log('Nerdamer solveEquations result (solutions):', solutions);
-                            solutions.forEach((sol, index) => {
-                                console.log(`Solution ${index}:`, sol);
-                                console.log(`Type of solution ${index}:`, typeof sol);
-                                console.log(`Does solution ${index} have toTeX?`, typeof sol?.toTeX === 'function');
-                            });
-                            // --- 调试日志结束 ---
                             resultLatex = solutions.map(sol => `${variable} = ${nerdamer(sol.toString()).toTeX()}`).join(', \\quad ');
                         }
                     } else if (solutions) {
-                        // 处理单个解：将 Symbol 对象先转为字符串，再用 nerdamer() 构造以调用 toTeX()
                         resultLatex = `${variable} = ${nerdamer(solutions.toString()).toTeX()}`;
                     } else {
-                        // 处理无法表示解或特殊情况
                         resultLatex = "\\text{无法求解或表示解}";
                     }
-                    resultNerdamerObject = null; // 标记为已直接生成 LaTeX
+                    resultNerdamerObject = null;
                     break;
                 case 'factor':
                     resultNerdamerObject = nerdamer.factor(expression);
                     break;
                 case 'expand':
                     resultNerdamerObject = nerdamer.expand(expression);
+                    break;
+                case 'substitute':
+                    // 变量替换
+                    const substitution = document.getElementById('substitutionVar')?.value || 'x=1';
+                    const [subVar, subValue] = substitution.split('=').map(s => s.trim());
+                    if (subVar && subValue) {
+                        resultNerdamerObject = nerdamer(exprString).sub(subVar, subValue);
+                    } else {
+                        throw new Error('变量替换格式错误，请使用格式：变量=值');
+                    }
+                    break;
+                case 'evaluate':
+                    // 数值计算
+                    const evalPoint = document.getElementById('evaluationPoint')?.value || 'x=0';
+                    const [evalVar, evalValue] = evalPoint.split('=').map(s => s.trim());
+                    if (evalVar && evalValue) {
+                        const evaluated = nerdamer(exprString).sub(evalVar, evalValue);
+                        resultLatex = `f(${evalValue}) = ${evaluated.toString()}`;
+                    } else {
+                        throw new Error('计算点格式错误，请使用格式：变量=值');
+                    }
+                    resultNerdamerObject = null;
                     break;
                 default:
                     throw new Error(`未知的数学运算: ${operation}`);

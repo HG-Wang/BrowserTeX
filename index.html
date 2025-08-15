@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LaTeX编辑与解析</title>
+<title>LaTeX Pro - 高级编辑与解析</title>
 <!-- 配置MathJax -->
 <script>
 MathJax = {
   tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']], // 启用 $...$ 作为行内公式分隔符
-    displayMath: [['$$', '$$'], ['\\[', '\\]']] // 启用 $$...$$ 作为块级公式分隔符
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
   },
   svg: {
     fontCache: 'global'
@@ -42,160 +42,171 @@ MathJax = {
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1>LaTeX编辑与解析</h1>
+    <div class="container-fluid">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">LaTeX Pro</h1>
             <div class="d-flex gap-2">
                 <button id="settingsBtn" class="btn btn-outline-primary">⚙️ 设置</button>
                 <button id="themeToggleBtn" class="btn btn-secondary">🌙</button>
             </div>
-        </div>
-        <textarea id="editor" placeholder="在此输入LaTeX函数表达式，多个函数请用换行分隔，例如：\nx^2\n\sin(x)"></textarea>
-        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-            <button id="parseBtn" class="btn btn-secondary">解析LaTeX</button>
-            <button id="callModelBtn" class="btn btn-info">调用大模型</button>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="mathOpsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    数学运算
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="mathOpsDropdown">
-                    <li><h6 class="dropdown-header">基础运算</h6></li>
-                    <li><a class="dropdown-item" href="#" data-op="simplify">化简公式</a></li>
-                    <li><a class="dropdown-item" href="#" data-op="expand">展开公式</a></li>
-                    <li><a class="dropdown-item" href="#" data-op="factor">因式分解</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><h6 class="dropdown-header">微积分</h6></li>
-                    <li><a class="dropdown-item" href="#" data-op="diff">求导</a></li>
-                    <li><a class="dropdown-item" href="#" data-op="integrate">积分</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><h6 class="dropdown-header">方程求解</h6></li>
-                    <li><a class="dropdown-item" href="#" data-op="solve">求解方程</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><h6 class="dropdown-header">变量操作</h6></li>
-                    <li><a class="dropdown-item" href="#" data-op="substitute">变量替换</a></li>
-                    <li><a class="dropdown-item" href="#" data-op="evaluate">数值计算</a></li>
-                </ul>
-            </div>
-            <!-- 添加函数绘图按钮 -->
-            <button id="plotFunctionBtn" class="btn btn-success">绘制函数图像</button>
-            <!-- 添加绘制运算结果按钮 -->
-            <button id="plotResultBtn" class="btn btn-warning d-none ms-2">绘制运算结果</button>
-            <div class="input-group input-group-sm" style="width: 150px;">
-                 <span class="input-group-text" id="variable-addon">变量:</span>
-                 <input type="text" class="form-control" id="variableInput" placeholder="默认 x" aria-label="Variable" aria-describedby="variable-addon" value="x">
-            </div>
-            <div class="form-check ms-2">
-                <input class="form-check-input" type="checkbox" value="" id="replaceEditorCheckbox">
-                <label class="form-check-label" for="replaceEditorCheckbox">
-                    清空并插入结果
-                </label>
-            </div>
-        </div>
-        <!-- 添加绘图配置区域 -->
-        <div id="plotConfigPanel" class="card mb-3 d-none animate__animated animate__fadeIn">
-            <div class="card-header">函数绘图配置</div>
-            <div class="card-body">
-                <div class="row mb-2">
-                    <div class="col">
-                        <label for="xRangeMin" class="form-label">X轴最小值</label>
-                        <input type="number" class="form-control" id="xRangeMin" value="-10">
-                    </div>
-                    <div class="col">
-                        <label for="xRangeMax" class="form-label">X轴最大值</label>
-                        <input type="number" class="form-control" id="xRangeMax" value="10">
-                    </div>
-                    <div class="col">
-                        <label for="yRangeMin" class="form-label">Y轴最小值</label>
-                        <input type="number" class="form-control" id="yRangeMin" value="-10">
-                    </div>
-                    <div class="col">
-                        <label for="yRangeMax" class="form-label">Y轴最大值</label>
-                        <input type="number" class="form-control" id="yRangeMax" value="10">
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showGridCheck" checked>
-                            <label class="form-check-label" for="showGridCheck">显示网格</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showLegendCheck" checked>
-                            <label class="form-check-label" for="showLegendCheck">显示图例</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <button id="generatePlotBtn" class="btn btn-primary">生成图像</button>
-                    <button id="closePlotConfigBtn" class="btn btn-secondary ms-2">取消</button>
-                </div>
-            </div>
-        </div>
-        <!-- 高级运算配置面板 -->
-        <div id="advancedMathPanel" class="card mb-3 d-none animate__animated animate__fadeIn">
-            <div class="card-header">高级运算配置</div>
-            <div class="card-body">
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <label for="substitutionVar" class="form-label">替换变量</label>
-                        <input type="text" class="form-control" id="substitutionVar" placeholder="例如：x=2">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="evaluationPoint" class="form-label">计算点</label>
-                        <input type="text" class="form-control" id="evaluationPoint" placeholder="例如：x=0">
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <button id="executeAdvancedBtn" class="btn btn-primary">执行运算</button>
-                    <button id="closeAdvancedBtn" class="btn btn-secondary ms-2">取消</button>
-                </div>
-            </div>
-        </div>
+        </header>
 
-        <!-- API配置设置面板 -->
-        <div id="apiConfigPanel" class="card mb-3 d-none animate__animated animate__fadeIn">
-            <div class="card-header">API配置设置</div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <label for="apiBaseUrl" class="form-label">API Base URL</label>
-                        <input type="url" class="form-control" id="apiBaseUrl" placeholder="例如：https://api.example.com/v1/chat/completions">
-                        <div class="form-text">留空则使用默认配置</div>
+        <div class="row">
+            <!-- 左侧主工作区 -->
+            <div class="col-lg-8">
+                <!-- 编辑器 -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">LaTeX 编辑器</h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="editor" class="form-control" rows="8" placeholder="在此输入LaTeX函数表达式，多个函数请用换行分隔，例如：\nx^2\n\sin(x)"></textarea>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="apiModel" class="form-label">模型名称</label>
-                        <input type="text" class="form-control" id="apiModel" placeholder="例如：gpt-3.5-turbo">
-                        <div class="form-text">留空则使用默认配置</div>
+                <!-- 预览/结果 -->
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">预览与结果</h5>
+                        <!-- 绘制运算结果按钮，移动到这里 -->
+                        <button id="plotResultBtn" class="btn btn-warning btn-sm d-none">绘制运算结果</button>
                     </div>
-                    <div class="col-md-6">
-                        <label for="apiKey" class="form-label">API密钥</label>
-                        <input type="password" class="form-control" id="apiKey" placeholder="输入您的API密钥">
-                        <div class="form-text">留空则使用默认配置</div>
+                    <div class="card-body">
+                        <div id="preview" class="min-vh-50"></div>
+                        <!-- 函数图像将显示在这里 -->
+                        <div id="functionPlot" class="mt-3 d-none"></div>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <button id="saveApiConfigBtn" class="btn btn-primary">保存配置</button>
-                    <button id="resetApiConfigBtn" class="btn btn-secondary ms-2">重置为默认</button>
-                    <button id="closeApiConfigBtn" class="btn btn-outline-secondary ms-2">取消</button>
+            </div>
+
+            <!-- 右侧工具栏 -->
+            <div class="col-lg-4">
+                <!-- 操作中心 -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">操作中心</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button id="parseBtn" class="btn btn-primary">解析LaTeX</button>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="modelQuery" placeholder="向大模型提问...">
+                                <button id="callModelBtn" class="btn btn-info">发送</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数学工具 -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">数学工具</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <div class="input-group">
+                                <span class="input-group-text">变量:</span>
+                                <input type="text" class="form-control" id="variableInput" placeholder="x" value="x">
+                                <button class="btn btn-success" id="plotFunctionBtn">绘制图像</button>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="mathOpsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    数学运算
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="mathOpsDropdown">
+                                    <li><h6 class="dropdown-header">基础运算</h6></li>
+                                    <li><a class="dropdown-item" href="#" data-op="simplify">化简公式</a></li>
+                                    <li><a class="dropdown-item" href="#" data-op="expand">展开公式</a></li>
+                                    <li><a class="dropdown-item" href="#" data-op="factor">因式分解</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">微积分</h6></li>
+                                    <li><a class="dropdown-item" href="#" data-op="diff">求导</a></li>
+                                    <li><a class="dropdown-item" href="#" data-op="integrate">积分</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">方程求解</h6></li>
+                                    <li><a class="dropdown-item" href="#" data-op="solve">求解方程</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">变量操作</h6></li>
+                                    <li><a class="dropdown-item" href="#" data-op="substitute">变量替换</a></li>
+                                    <li><a class="dropdown-item" href="#" data-op="evaluate">数值计算</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" value="" id="replaceEditorCheckbox">
+                            <label class="form-check-label" for="replaceEditorCheckbox">
+                                清空并插入结果
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 配置面板 (初始隐藏) -->
+                <div id="configPanelsContainer">
+                    <!-- 绘图配置 -->
+                    <div id="plotConfigPanel" class="card shadow-sm mb-4 d-none">
+                        <div class="card-header">函数绘图配置</div>
+                        <div class="card-body">
+                            <div class="row g-2 mb-2">
+                                <div class="col"><input type="number" class="form-control" id="xRangeMin" value="-10" title="X轴最小值"></div>
+                                <div class="col"><input type="number" class="form-control" id="xRangeMax" value="10" title="X轴最大值"></div>
+                                <div class="col"><input type="number" class="form-control" id="yRangeMin" value="-10" title="Y轴最小值"></div>
+                                <div class="col"><input type="number" class="form-control" id="yRangeMax" value="10" title="Y轴最大值"></div>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="showGridCheck" checked>
+                                <label class="form-check-label" for="showGridCheck">网格</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="showLegendCheck" checked>
+                                <label class="form-check-label" for="showLegendCheck">图例</label>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button id="generatePlotBtn" class="btn btn-primary flex-grow-1">生成</button>
+                                <button id="closePlotConfigBtn" class="btn btn-secondary">取消</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 高级运算配置 -->
+                    <div id="advancedMathPanel" class="card shadow-sm mb-4 d-none">
+                        <div class="card-header">高级运算配置</div>
+                        <div class="card-body">
+                            <div id="substitutionVarGroup" class="mb-2"><input type="text" class="form-control" id="substitutionVar" placeholder="例如：x=2"></div>
+                            <div id="evaluationPointGroup" class="mb-2"><input type="text" class="form-control" id="evaluationPoint" placeholder="例如：x=2"></div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button id="executeAdvancedBtn" class="btn btn-primary flex-grow-1">执行</button>
+                                <button id="closeAdvancedBtn" class="btn btn-secondary">取消</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- API配置 -->
+                    <div id="apiConfigPanel" class="card shadow-sm mb-4 d-none">
+                        <div class="card-header">API 配置</div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="apiBaseUrl" class="form-label">API Base URL</label>
+                                <input type="url" class="form-control" id="apiBaseUrl" placeholder="留空使用默认">
+                            </div>
+                            <div class="mb-2">
+                                <label for="apiModel" class="form-label">模型名称</label>
+                                <input type="text" class="form-control" id="apiModel" placeholder="留空使用默认">
+                            </div>
+                            <div class="mb-2">
+                                <label for="apiKey" class="form-label">API 密钥</label>
+                                <input type="password" class="form-control" id="apiKey">
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button id="saveApiConfigBtn" class="btn btn-primary">保存</button>
+                                <button id="resetApiConfigBtn" class="btn btn-secondary">重置</button>
+                                <button id="closeApiConfigBtn" class="btn btn-outline-secondary">取消</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="mb-3">
-            <label for="modelQuery" class="form-label">向大模型提问:</label>
-            <input type="text" class="form-control" id="modelQuery" placeholder="例如：解释这个LaTeX公式，或者帮我优化它">
-        </div>
-        <div id="preview" class="animate__animated animate__fadeIn"></div>
-        <!-- 添加函数图像区域 -->
-        <div id="functionPlot" class="mt-3 d-none animate__animated animate__fadeIn"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- 引入自定义脚本 -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
-
